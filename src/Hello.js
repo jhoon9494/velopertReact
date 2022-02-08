@@ -1,11 +1,14 @@
-import react from "react";
+import React from "react";
 
-const Hello = () => {
+const Hello = ({ name, color }) => {
   return (
     <>
-      <h1>안녕하세요</h1>
-      <input placeholder="입력하세요"></input>
+      <h1 style={{ color: color }}>안녕하세요 {name}</h1>
     </>
   );
+};
+
+Hello.defaultProps = {
+  name: "noName",
 };
 export default Hello;
