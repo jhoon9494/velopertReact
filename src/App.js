@@ -1,10 +1,15 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useMemo } from "react";
 import Hello from "./Hello";
 import Wrapper from "./Wrapper";
 import Counter from "./Counter";
 import InputSample from "./InputSample";
 import UserList from "./UserList";
 import CreateUser from "./CreateUser";
+
+function countActiveUsers(users) {
+  console.log("활성 사용자 수를 세는 중...");
+  return users.filter((user) => user.active).length;
+}
 
 function App() {
   const [inputs, setInputs] = useState({ username: "", email: "" });
@@ -57,6 +62,8 @@ function App() {
     // map 함수 사용
     setUsers(users.map((user) => (user.id !== id ? user : { ...user, active: !user.active })));
   };
+
+  const count = useMemo(() => countActiveUsers(users), [users]);
   return (
     // Wrapper태그 내부에 있는 Hello 등 여러 컴포넌트를 보여지게 하기 위해서는
     // Wrapper에서 props.children을 렌더링 해주어야 한다.
@@ -70,6 +77,7 @@ function App() {
       <hr />
       <CreateUser username={username} email={email} onChange={onChange} onCreate={onCreate} />
       <UserList users={users} onRemove={onRemove} onToggle={onToggle} />
+      <div>활성 사용자 수 : {count}</div>
     </Wrapper>
   );
 }
