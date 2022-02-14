@@ -1,4 +1,4 @@
-import React, { useRef, useState, useMemo } from "react";
+import React, { useRef, useState, useMemo, useCallback } from "react";
 import Hello from "./Hello";
 import Wrapper from "./Wrapper";
 import Counter from "./Counter";
@@ -14,10 +14,13 @@ function countActiveUsers(users) {
 function App() {
   const [inputs, setInputs] = useState({ username: "", email: "" });
   const { username, email } = inputs;
-  const onChange = (e) => {
-    const { value, name } = e.target;
-    setInputs({ ...inputs, [name]: value });
-  };
+  const onChange = useCallback(
+    (e) => {
+      const { value, name } = e.target;
+      setInputs({ ...inputs, [name]: value });
+    },
+    [inputs]
+  );
   const [users, setUsers] = useState([
     {
       id: 1,
@@ -39,7 +42,7 @@ function App() {
     },
   ]);
   const nextId = useRef(4);
-  const onCreate = () => {
+  const onCreate = useCallback(() => {
     const user = {
       id: nextId.current,
       username,
@@ -51,17 +54,23 @@ function App() {
     user.username !== "" && user.email !== "" && setUsers([...users, user]);
     setInputs({ username: "", email: "" });
     nextId.current += 1;
-  };
-  const onRemove = (id) => {
-    // 불변성을 지키면서 배열에 항목을 제거하는 방법
-    // filter 함수 사용
-    setUsers(users.filter((user) => user.id !== id));
-  };
-  const onToggle = (id) => {
-    // 불변성을 지키면서 배열을 업데이트(수정)하는 방법
-    // map 함수 사용
-    setUsers(users.map((user) => (user.id !== id ? user : { ...user, active: !user.active })));
-  };
+  }, [username, email, users]);
+  const onRemove = useCallback(
+    (id) => {
+      // 불변성을 지키면서 배열에 항목을 제거하는 방법
+      // filter 함수 사용
+      setUsers(users.filter((user) => user.id !== id));
+    },
+    [users]
+  );
+  const onToggle = useCallback(
+    (id) => {
+      // 불변성을 지키면서 배열을 업데이트(수정)하는 방법
+      // map 함수 사용
+      setUsers(users.map((user) => (user.id !== id ? user : { ...user, active: !user.active })));
+    },
+    [users]
+  );
 
   const count = useMemo(() => countActiveUsers(users), [users]);
   return (
