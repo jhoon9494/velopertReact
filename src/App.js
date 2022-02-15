@@ -1,4 +1,4 @@
-import React, { useRef, useState, useMemo, useCallback } from "react";
+import React, { useRef, useReducer, useMemo, useCallback } from "react";
 import UserList from "./UserList";
 import CreateUser from "./CreateUser";
 
@@ -7,14 +7,9 @@ function countActiveUsers(users) {
   return users.filter((user) => user.active).length;
 }
 
-function App() {
-  const [inputs, setInputs] = useState({ username: "", email: "" });
-  const { username, email } = inputs;
-  const onChange = useCallback((e) => {
-    const { value, name } = e.target;
-    setInputs((inputs) => ({ ...inputs, [name]: value }));
-  }, []);
-  const [users, setUsers] = useState([
+const initialState = {
+  inputs: { username: "", email: "" },
+  users: [
     {
       id: 1,
       username: "velopert",
@@ -33,35 +28,55 @@ function App() {
       email: "liz@example.com",
       active: false,
     },
-  ]);
+  ],
+};
+
+const reducer = (state, action) => {
+  switch (action.type) {
+    case "CHANGE_INPUT":
+      return { ...state, inputs: { ...state.inputs, [action.name]: action.value } };
+    case "CREATE_USER":
+      return { inputs: initialState.inputs, users: [...state.users, action.user] };
+    case "REMOVE_USER":
+      return { ...state, users: state.users.filter((user) => user.id !== action.id) };
+    case "TOGGLE_USER":
+      return {
+        ...state,
+        users: state.users.map((user) =>
+          user.id === action.id ? { ...user, active: !user.active } : user
+        ),
+      };
+    default:
+      return state;
+  }
+};
+
+function App() {
+  const [state, dispatch] = useReducer(reducer, initialState);
   const nextId = useRef(4);
-  const onCreate = useCallback(() => {
-    const user = {
-      id: nextId.current,
-      username,
-      email,
-    };
-    // 불변성을 지키면서 배열에 새 항목을 추가하는 방법
-    // 1. spread 연산자 사용 ex) setUsers([...users, user])
-    // 2. concat 함수 사용 ex) setUsers(users.concat(user))
-    user.username !== "" && user.email !== "" && setUsers((users) => [...users, user]);
-    setInputs({ username: "", email: "" });
-    nextId.current += 1;
-  }, [username, email]);
-  const onRemove = useCallback((id) => {
-    // 불변성을 지키면서 배열에 항목을 제거하는 방법
-    // filter 함수 사용
-    setUsers((users) => users.filter((user) => user.id !== id));
+
+  const { users } = state;
+  const { username, email } = state.inputs;
+
+  const onChange = useCallback((e) => {
+    const { name, value } = e.target;
+    dispatch({ type: "CHANGE_INPUT", name, value });
   }, []);
+
+  const onCreate = useCallback(() => {
+    dispatch({ type: "CREATE_USER", user: { id: nextId.current, username, email } });
+  }, [username, email]);
+
+  const onRemove = useCallback((id) => {
+    dispatch({ type: "REMOVE_USER", id });
+  }, []);
+
   const onToggle = useCallback((id) => {
-    // 불변성을 지키면서 배열을 업데이트(수정)하는 방법
-    // map 함수 사용
-    setUsers((users) =>
-      users.map((user) => (user.id !== id ? user : { ...user, active: !user.active }))
-    );
+    dispatch({ type: "TOGGLE_USER", id });
   }, []);
 
   const count = useMemo(() => countActiveUsers(users), [users]);
+
   return (
     <>
       <CreateUser username={username} email={email} onChange={onChange} onCreate={onCreate} />
