@@ -1,8 +1,4 @@
 import React, { useRef, useState, useMemo, useCallback } from "react";
-import Hello from "./Hello";
-import Wrapper from "./Wrapper";
-import Counter from "./Counter";
-import InputSample from "./InputSample";
 import UserList from "./UserList";
 import CreateUser from "./CreateUser";
 
@@ -14,13 +10,10 @@ function countActiveUsers(users) {
 function App() {
   const [inputs, setInputs] = useState({ username: "", email: "" });
   const { username, email } = inputs;
-  const onChange = useCallback(
-    (e) => {
-      const { value, name } = e.target;
-      setInputs({ ...inputs, [name]: value });
-    },
-    [inputs]
-  );
+  const onChange = useCallback((e) => {
+    const { value, name } = e.target;
+    setInputs((inputs) => ({ ...inputs, [name]: value }));
+  }, []);
   const [users, setUsers] = useState([
     {
       id: 1,
@@ -51,43 +44,30 @@ function App() {
     // 불변성을 지키면서 배열에 새 항목을 추가하는 방법
     // 1. spread 연산자 사용 ex) setUsers([...users, user])
     // 2. concat 함수 사용 ex) setUsers(users.concat(user))
-    user.username !== "" && user.email !== "" && setUsers([...users, user]);
+    user.username !== "" && user.email !== "" && setUsers((users) => [...users, user]);
     setInputs({ username: "", email: "" });
     nextId.current += 1;
-  }, [username, email, users]);
-  const onRemove = useCallback(
-    (id) => {
-      // 불변성을 지키면서 배열에 항목을 제거하는 방법
-      // filter 함수 사용
-      setUsers(users.filter((user) => user.id !== id));
-    },
-    [users]
-  );
-  const onToggle = useCallback(
-    (id) => {
-      // 불변성을 지키면서 배열을 업데이트(수정)하는 방법
-      // map 함수 사용
-      setUsers(users.map((user) => (user.id !== id ? user : { ...user, active: !user.active })));
-    },
-    [users]
-  );
+  }, [username, email]);
+  const onRemove = useCallback((id) => {
+    // 불변성을 지키면서 배열에 항목을 제거하는 방법
+    // filter 함수 사용
+    setUsers((users) => users.filter((user) => user.id !== id));
+  }, []);
+  const onToggle = useCallback((id) => {
+    // 불변성을 지키면서 배열을 업데이트(수정)하는 방법
+    // map 함수 사용
+    setUsers((users) =>
+      users.map((user) => (user.id !== id ? user : { ...user, active: !user.active }))
+    );
+  }, []);
 
   const count = useMemo(() => countActiveUsers(users), [users]);
   return (
-    // Wrapper태그 내부에 있는 Hello 등 여러 컴포넌트를 보여지게 하기 위해서는
-    // Wrapper에서 props.children을 렌더링 해주어야 한다.
-    <Wrapper>
-      <Hello color="pink" isSpecial />
-      <Hello name="react" color="red" />
-      <hr />
-      <Counter />
-      <hr />
-      <InputSample />
-      <hr />
+    <>
       <CreateUser username={username} email={email} onChange={onChange} onCreate={onCreate} />
       <UserList users={users} onRemove={onRemove} onToggle={onToggle} />
       <div>활성 사용자 수 : {count}</div>
-    </Wrapper>
+    </>
   );
 }
 

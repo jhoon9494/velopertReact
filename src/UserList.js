@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 
-const User = ({ user, onRemove, onToggle }) => {
+const User = React.memo(function User({ user, onRemove, onToggle }) {
   useEffect(() => {
     console.log("user 값이 설정됨");
     console.log(user);
@@ -29,7 +29,7 @@ const User = ({ user, onRemove, onToggle }) => {
       </button>
     </div>
   );
-};
+});
 
 const UserList = ({ users, onRemove, onToggle }) => {
   return (
@@ -41,4 +41,4 @@ const UserList = ({ users, onRemove, onToggle }) => {
   );
 };
 
-export default UserList;
+export default React.memo(UserList);
